@@ -16,29 +16,32 @@ class SyncCommentData
 		 *  ['comment_meta'] = an array of the comment's meta data
 		 *  ['comment_meta'][{id}] => the comment id is the index to the comment meta data
 		 */
-		$post_id = intval($data['post_id']);
+		// TODO: check action- only do the work on 'push' / 'pull'
+		if (isset($data['post_id'])) {
+			$post_id = intval($data['post_id']);
 SyncDebug::log(__METHOD__.'() post #' . $post_id);
-		if (0 !== $post_id) {
+			if (0 !== $post_id) {
 SyncDebug::log(__METHOD__.'() syncing comments for post #' . $post_id);
-			$args = array(
-				'post_id' => $post_id,
-				'status' => array('hold', 'approve'),	// don't sync trashed/spam comments
-				'orderby' => 'comment_date',
-				'order' => 'ASC',
-			);
-			$query = new WP_Comment_Query($args);
-			$comments = $query->get_comments();
+				$args = array(
+					'post_id' => $post_id,
+					'status' => array('hold', 'approve'),	// don't sync trashed/spam comments
+					'orderby' => 'comment_date',
+					'order' => 'ASC',
+				);
+				$query = new WP_Comment_Query($args);
+				$comments = $query->get_comments();
 SyncDebug::log(__METHOD__.'() found ' . count($comments) . ' comments for this content');
-			foreach ($comments as $comment) {
-				// add comment data to the array
-				$comment_data = get_object_vars($comment);
+				foreach ($comments as $comment) {
+					// add comment data to the array
+					$comment_data = get_object_vars($comment);
 SyncDebug::log(__METHOD__.'() comment: ' . var_export($comment_data, TRUE));
-				$data['comment_data'][] = $comment_data;
-				// add comment meta data to the array
-				$comment_meta = get_comment_meta($comment->comment_ID);
+					$data['comment_data'][] = $comment_data;
+					// add comment meta data to the array
+					$comment_meta = get_comment_meta($comment->comment_ID);
 SyncDebug::log(__METHOD__.'() comment meta: ' . var_export($comment_meta, TRUE));
-				if (FALSE !== $comment_meta) {
-					$data['comment_meta'][strval($comment->comment_ID)] = $comment_meta;
+					if (FALSE !== $comment_meta) {
+						$data['comment_meta'][strval($comment->comment_ID)] = $comment_meta;
+					}
 				}
 			}
 		}
