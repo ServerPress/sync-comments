@@ -23,7 +23,7 @@ if (!class_exists('WPSiteSync_Comments', FALSE)) {
 
 		const PLUGIN_NAME = 'WPSiteSync for Comments';
 		const PLUGIN_VERSION = '1.0';
-		const PLUGIN_KEY = '3139b83e5307e700b9253259d0fe8198';
+		const PLUGIN_KEY = '308ccc03463de8dd7ffd9642083b05b4'; // '3139b83e5307e700b9253259d0fe8198';
 
 		private function __construct()
 		{
