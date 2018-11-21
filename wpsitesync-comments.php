@@ -46,6 +46,11 @@ if (!class_exists('WPSiteSync_Comments', FALSE)) {
 SyncDebug::log(__METHOD__.'()');
 			add_filter('spectrom_sync_active_extensions', array(&$this, 'filter_active_extensions'), 10, 2);
 
+			if (!WPSiteSyncContent::get_instance()->get_license()->check_license('sync_comments', self::PLUGIN_KEY, self::PLUGIN_NAME)) {
+SyncDebug::log(__METHOD__ . '() no license');
+				return;
+			}
+
 			add_filter('spectrom_sync_api_request', array(&$this, 'add_comment_data'), 10, 3);
 			add_action('spectrom_sync_api_process', array(&$this, 'handle_comment_data'), 10, 3);
 		}
@@ -103,15 +108,15 @@ SyncDebug::log(__METHOD__.'() handling push action- sync the comments');
 		}
 
 		/**
-		 * Add the CPT add-on to the list of known WPSiteSync extensions
+		 * Add the Comments add-on to the list of known WPSiteSync extensions
 		 * @param array $extensions The list to add to
 		 * @param boolean $set
-		 * @return array The list of extensions, with the WPSiteSync CPT add-on included
+		 * @return array The list of extensions, with the WPSiteSync Comments add-on included
 		 */
 		public function filter_active_extensions($extensions, $set = FALSE)
 		{
 //SyncDebug::log(__METHOD__.'()');
-			if ($set || $this->_license->check_license('sync_comments', self::PLUGIN_KEY, self::PLUGIN_NAME))
+			if ($set || WPSiteSyncContent::get_instance()->get_license()->check_license('sync_comments', self::PLUGIN_KEY, self::PLUGIN_NAME))
 				$extensions['sync_comments'] = array(
 					'name' => self::PLUGIN_NAME,
 					'version' => self::PLUGIN_VERSION,
