@@ -28,6 +28,7 @@ if (!class_exists('WPSiteSync_Comments', FALSE)) {
 		private function __construct()
 		{
 			add_action('spectrom_sync_init', array(&$this, 'init'));
+			add_action('wp_loaded', array($this, 'wp_loaded'));
 		}
 
 		/**
@@ -51,8 +52,54 @@ SyncDebug::log(__METHOD__ . '() no license');
 				return;
 			}
 
+			// TODO: move into 'spectrom_sync_api_init' callback
 			add_filter('spectrom_sync_api_request', array(&$this, 'add_comment_data'), 10, 3);
 			add_action('spectrom_sync_api_process', array(&$this, 'handle_comment_data'), 10, 3);
+		}
+
+		/**
+		 * Called when WP is loaded so we can check if parent plugin is active.
+		 */
+		public function wp_loaded()
+		{
+			if (is_admin() && !class_exists('WPSiteSyncContent', FALSE) && current_user_can('activate_plugins')) {
+				add_action('admin_notices', array($this, 'notice_requires_wpss'));
+				add_action('admin_init', array($this, 'disable_plugin'));
+			}
+		}
+
+		/**
+		 * Displays the warning message stating that WPSiteSync is not present.
+		 */
+		public function notice_requires_wpss()
+		{
+			$install = admin_url('plugin-install.php?tab=search&s=wpsitesync');
+			$activate = admin_url('plugins.php');
+			$msg = sprintf(__('The <em>WPSiteSync for Comments</em> plugin requires the main <em>WPSiteSync for Content</em> plugin to be installed and activated. Please %1$sclick here</a> to install or %2$sclick here</a> to activate.', 'wpsitesync-comments'),
+						'<a href="' . $install . '">',
+						'<a href="' . $activate . '">');
+			$this->_show_notice($msg, 'notice-warning');
+		}
+
+		/**
+		 * Disables the plugin if WPSiteSync not installed or ACF is too old
+		 */
+		public function disable_plugin()
+		{
+			deactivate_plugins(plugin_basename(__FILE__));
+		}
+
+		/**
+		 * Helper method to display notices
+		 * @param string $msg Message to display within notice
+		 * @param string $class The CSS class used on the <div> wrapping the notice
+		 * @param boolean $dismissable TRUE if message is to be dismissable; otherwise FALSE.
+		 */
+		private function _show_notice($msg, $class = 'notice-success', $dismissable = FALSE)
+		{
+			echo '<div class="notice ', $class, ' ', ($dismissable ? 'is-dismissible' : ''), '">';
+			echo '<p>', $msg, '</p>';
+			echo '</div>';
 		}
 
 		/**
